@@ -5,9 +5,11 @@ namespace App\CommandHandler\Account;
 
 use App\Command\Account\CreateUserCommand;
 use App\Entity\User;
+use App\Event\User\UserHasBeenCreatedEvent;
 use App\Repository\UserRepository;
 use Exception;
 use Symfony\Component\Messenger\Handler\MessageHandlerInterface;
+use Symfony\Component\Messenger\MessageBusInterface;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Throwable;
 
@@ -16,19 +18,14 @@ use Throwable;
  */
 final class CreateUserCommandHandler implements MessageHandlerInterface
 {
-    private UserRepository $repository;
-    private UserPasswordHasherInterface $passwordHasher;
-
     /**
      * @param UserRepository $repository
      */
     public function __construct(
-        UserRepository $repository,
-        UserPasswordHasherInterface $passwordHasher
-    ) {
-        $this->repository = $repository;
-        $this->passwordHasher = $passwordHasher;
-    }
+        public UserRepository $repository,
+        public UserPasswordHasherInterface $passwordHasher,
+        public MessageBusInterface $eventBus
+    ){}
 
     /**
      * @param CreateUserCommand $command
@@ -44,6 +41,8 @@ final class CreateUserCommandHandler implements MessageHandlerInterface
 
             $user->setPassword($hashedPassword);
             $this->repository->save($user);
+
+            $this->eventBus->dispatch(new UserHasBeenCreatedEvent($user));
         }catch (Throwable $exception) {
             throw new Exception($exception->getMessage());
         }

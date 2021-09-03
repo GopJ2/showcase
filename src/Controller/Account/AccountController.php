@@ -19,17 +19,12 @@ use Throwable;
  */
 final class AccountController extends AbstractFOSRestController
 {
-    private MessageBusInterface $bus;
-    private ValidatorInterface $validator;
-
     /**
      * @param MessageBusInterface $bus
      * @param ValidatorInterface  $validator
      */
-    public function __construct(MessageBusInterface $bus, ValidatorInterface $validator)
+    public function __construct(public MessageBusInterface $bus, public ValidatorInterface $validator)
     {
-        $this->bus = $bus;
-        $this->validator = $validator;
     }
 
     /**
